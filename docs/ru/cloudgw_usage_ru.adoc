@@ -1,0 +1,77 @@
+= Использование Cloudgw
+
+== VPP и GoBGP CLI-клиенты
+
+Cloudgw использует VPP в качестве data plane engine и встроенный GoBGP в качестве плоскости управления.
+Таким образом, вы можете использовать стандартные клиенты https://s3-docs.fd.io/vpp/24.06/cli-reference/index.html[VPP] и https://github.com/osrg/gobgp/blob/master/docs/source/cli-command-syntax.md[GoBGP] для просмотра основной информации о топологии и таблицах маршрутизации.
+Для GoBGP вам необходимо сначала установить клиент GoBGP с https://github.com/osrg/gobgp/releases/[github]).
+
+- Подключение к VPP
+
+[source,shell]
+----
+# запустить vpp клиент
+sudo vppclt
+
+# полезные команды vpp
+show interface
+show interface address
+show hardware-interfaces
+show ip fib [table X]
+show mpls fib
+show udp encap
+----
+
+- Подключение к GoBGP
+
+[source,shell]
+----
+# запустить gobgp клиент
+./gobgp
+
+# полезные команды gobgp
+gobgp neighbor x.x.x.x adj-in -a vpnv4
+gobgp neighbor x.x.x.x adj-out -a vpnv4
+gobgp neighbor x.x.x.x adj-out -a ipv4
+gobgp neighbor x.x.x.x adj-in -a ipv4
+gobgp global rib -a vpnv
+----
+
+== Просмотр статистики с помощью HTTP-запросов
+
+Подробную информацию о BGP, маршрутах и туннелях можно получить с помощью HTTP-запросов (см. файл конфигурации Cloudgw для информации о прослушиваемом адресе и порте):
+
+[%header,cols="1,1",options="header"]
+|===
+| URL
+| Описание
+
+| `/metrics`
+| Метрики Prometheus
+
+| `/health`
+| Проверка здоровья
+
+| `/summary`
+| Сводная информация о таблицах BGP  и маршрутизации.
+
+| `/bgp/vrfs`
+| Информация о BGP VRF
+
+| `/bgp/peers`
+| Информация о BGP подключениях
+
+| `/vpp/vrfs`
+| Информация о VPP VRF
+
+| `/vpp/fips`
+| Информация о VPP Floating IP
+
+| `/vpp/tunnels`
+| Информация о VPP туннелях
+|===
+
+== Логирование
+
+Назначение и формат журналов логирования Cloudgw настраиваются в файле конфигурации Cloudgw.
+Если вы запускаете Cloudgw как службу systemd, вы можете просмотреть журналы логирования с помощью команды `sydo Journalctl -u Cloudgw -ef`.

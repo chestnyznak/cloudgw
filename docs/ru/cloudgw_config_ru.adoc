@@ -1,0 +1,65 @@
+= Конфигурационный файл Cloudgw
+
+Конфигурационный файл Cloudgw находится в `/etc/vpp/config.conf`.
+Вы можете изменить путь нахождения конфигурационного файла с помощью переменной среды `CLOUDGW_CONFIG_PATH` при старте Cloudgw.
+
+[source,yaml]
+----
+---
+Logging:
+  Level: "info"    # уровень логирования: "debug", "info", "error"
+  Format: "json"   # формат логирования: "json", "console"
+  Output: "stdout"
+  Source: false    # включить источник кода в сообщениях логирования
+
+HTTP:
+  Enable: true     # включить HTTP-сервер для метрик Prometheus и статистики
+  Address: ":9200" # адрес и порт прослушивания сервера HTTP-сервера
+
+Pyroscope:
+  Enable: false                # включить профилирование с помощью Pyroscope
+  URL: "http://localhost:4040" # URL сервера Pyroscope
+
+TFController:          # настройки контроллеров Tungsten Fabric
+  BGPPeerASN: 65001    # BGP ASN Tungsten Fabric контроллеров
+  BGPTTL: 10           # eBGP TTL
+  BGPKeepAlive: 3      # BGP KeepAlive таймер, сек.
+  BGPHoldTimer: 9      # BGP HoldTimer таймер, сек.
+  Address:             # адреса Tungsten Fabric контроллеров
+    - "10.12.0.11"
+    - "10.12.0.12"
+    - "10.12.0.13"
+
+GoBGP:                         # локальные настройки BGP cloudgw
+  GRPCListenAddress: ":50051"  # адрес прослушивания GoBGP gRPC-сервера
+  BGPLocalASN: 65002           # BGP ASN cloudgw
+  BGPLocalPort: 179            # адрес локального порта BGP
+  RID: "10.12.0.1"             # BGP router ID cloudgw
+  MetricPollingInterval: 5     # частота опроса goBGP для получения Prometheus-метрик, сек.
+
+VPP:                               # настройки VPP cloudgw
+  BinAPISock: "/run/vpp/api.sock"  # адрес сокета VPP для подключения Cloudgw
+  MainInterfaceID: 1               # идентификатор основного интерфейса VPP, используемого для построения туннелей
+  TunLocalIP: "192.0.0.1/24"       # адрес основного интерфейса VPP, используемого для построения туннелей
+  TunDefaultGW: "192.0.0.254"      # шлюз основного интерфейса VPP
+  InterfaceMonitorEnable: false    # включить ICMP-мониторинг основного интерфейса VPP
+  MetricPollingInterval: 5         # частота опроса VPP для получения Prometheus-метрик, сек.
+
+VRF:                                                 # настройки VRF для подключения к физическим сетям
+  - FIPPrefixes: ["192.0.1.0/24", "192.0.2.0/24"]    # пул плавающих адресов, используемых Tungsten Fabric в данном VRF
+    VRFName: "vpc01"                                 # имя VRF
+    VRFID: 1                                         # идентификатор VRF
+    LocalIP: "192.0.2.1/29"                          # локальный адрес VPP в VRF, используемый как data plane интерфейс
+    VLANID: 10                                       # VRF VLAN ID
+    BGPPeerIP: "10.12.0.3"                           # IP-адрес маршрутизатора BGP физической сети
+    BGPPeerASN: 65003                                # BGP ASN маршрутизатора BGP физической сети
+    BGPTTL: 16                                       # eBGP TTL
+    BGPKeepAlive: 30                                 # BGP KeepAlive-таймер, сек.
+    BGPHoldTimer: 90                                 # BGP HoldTimer-таймер, сек.
+    BGPPassword:  "anysecretkey"                     # BGP пароль
+    BFDEnable: true                                  # включить BFD для BGP-сессии
+    BFDLocalIP: "10.12.0.1"                          # локальный адрес BFD (интерфейс linux, который cloudgw использует для установки BGP-сессии с маршрутизатором физической сети)
+    BFDTxRate: 3000                                  # BFD transmit time, мсек.
+    BFDRxMin: 3000                                   # BFD receive minimum time, мсек.
+    BFDMultiplier: 3                                 # BFD multiplier
+----

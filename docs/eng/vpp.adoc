@@ -1,0 +1,94 @@
+= VPP Installation and Configuration
+
+VPP used as a data plane engine for Cloudgw.
+Before running Cloudgw, you need to install and preconfigure VPP.
+
+== Installation
+
+- Load kernel module:
+
+----
+uio_pci_generic
+----
+
+ - https://s3-docs.fd.io/vpp/24.06/gettingstarted/installing/ubuntu.html[downloading and Installing VPP for Ubuntu]
+
+NOTE: If you use Mellanox NIC, you need to compile VPP from source with DPDK and Mellanox support enabled (with flags `DPDK_MLX4_PMD`, `DPDK_MLX5_PMD`, `DPDK_MLX5_COMMON_PMD`)
+
+== Configuration
+
+- Create log directory and file (optional):
+
+----
+mkdir -p /var/log/vpp/
+touch /var/log/vpp/vpp.log
+chmod 644 /var/log/vpp/vpp.log
+----
+
+- Find PCI address of VPP data plane interface (an interface that will be used for VPP traffic), the PCI address will be used in `/etc/vpp/startup.conf` configuration file.:
+
+[source,shell]
+----
+sudo lshw -class network -businfo
+----
+
+- Edit `/etc/vpp/startup.conf` configuration file:
+
+[source,shell]
+----
+unix {
+  nodaemon
+  log /var/log/vpp/vpp.log
+  full-coredump
+  cli-listen /run/vpp/cli.sock
+  cli-no-pager
+  gid vpp
+}
+api-trace {
+  on
+}
+api-segment {
+  gid vpp
+}
+socksvr {
+  default
+}
+cpu {
+  main-core 1
+  corelist-workers 2-9 # adjust according to your needs
+}
+dpdk {
+  dev default {
+    num-rx-queues 8 # adjust according to your needs
+    num-tx-queues 8 # adjust according to your needs
+  }
+  dev 0000:00:07.0 # pci address from previous step
+  no-multi-seg
+----
+
+- Edit VPP memory config `/etc/sysctl.d/80-vpp.conf`
+
+[source,shell]
+----
+# Number of 2MB hugepages desired
+vm.nr_hugepages=32768 # adjust according to your needs
+
+# Must be greater than or equal to (2 * vm.nr_hugepages).
+vm.max_map_count=66560 # adjust according to your needs
+
+# All groups allowed to access hugepages
+vm.hugetlb_shm_group=0
+
+# Shared Memory Max must be greater or equal to the total size of hugepages.
+# For 2MB pages, TotalHugepageSize = vm.nr_hugepages * 2 * 1024 * 1024
+# If the existing kernel.shmmax setting  (cat /proc/sys/kernel/shmmax)
+# is greater than the calculated TotalHugepageSize then set this parameter
+# to current shmmax value.
+kernel.shmmax=68719476736 # adjust according to your needs
+----
+
+- Restart VPP to apply the changes:
+
+----
+sudo systemctl restart vpp.service
+----

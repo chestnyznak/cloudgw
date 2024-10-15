@@ -1,0 +1,66 @@
+= Cloudgw config explanation
+
+Default path for config file is `/etc/vpp/config.conf`.
+
+You can change it with `CLOUDGW_CONFIG_PATH` environment variable when running Cloudgw.
+
+[source,yaml]
+----
+---
+Logging:
+  Level: "info"    # log level: "debug", "info", "error"
+  Format: "json"   # log format: "json", "console"
+  Output: "stdout"
+  Source: false    # include source code in log messages
+
+HTTP:
+  Enable: true     # enable HTTP server for Prometheus metrics and stats
+  Address: ":9200" # listen address and port
+
+Pyroscope:
+  Enable: false                # enable profiling with Pyroscope
+  URL: "http://localhost:4040" # Pyroscope server URL
+
+TFController:          # Tungsten Fabric controllers settings
+  BGPPeerASN: 65001    # Tungsten Fabric controllers ASN
+  BGPTTL: 10           # eBGP TTL
+  BGPKeepAlive: 3      # BGP KeepAlive timer in seconds
+  BGPHoldTimer: 9      # BGP HoldTimer in seconds
+  Address:             # Tungsten Fabric controller addresses
+    - "10.12.0.11"
+    - "10.12.0.12"
+    - "10.12.0.13"
+
+GoBGP:                         # cloudgw local BGP settings
+  GRPCListenAddress: ":50051"  # GoBGP gRPC listen address
+  BGPLocalASN: 65002           # local BGP ASN
+  BGPLocalPort: 179            # local BGP port
+  RID: "10.12.0.1"             # local BGP router ID
+  MetricPollingInterval: 5     # goBGP metric polling interval in seconds (for Prometheus metrics)
+
+VPP:                               # cloudgw VPP settings
+  BinAPISock: "/run/vpp/api.sock"  # VPP binary API socket than Cloudgw will use to communicate with VPP
+  MainInterfaceID: 1               # VPP main interface ID using as tunnel endpoint to vRouters
+  TunLocalIP: "192.0.0.1/24"       # VPP main interface local IP using as tunnel endpoint to vRouters
+  TunDefaultGW: "192.0.0.254"      # VPP main interface default gateway
+  InterfaceMonitorEnable: false    # enable VPP interface main monitor using ICMP
+  MetricPollingInterval: 5         # VPP metric polling interval in seconds (for Prometheus metrics)
+
+VRF:                                                 # cloudgw VRF settings to connect to physical networks
+  - FIPPrefixes: ["192.0.1.0/24", "192.0.2.0/24"]    # IP pool prefixes using vRouters for floating IP addresses
+    VRFName: "vpc01"                                 # cloudgw VRF name
+    VRFID: 1                                         # cloudgw VRF ID
+    LocalIP: "192.0.2.1/29"                          # cloudgw VRF local IP in VPP using as data plane to communicate with external routers
+    VLANID: 10                                       # cloudgw VRF VLAN ID
+    BGPPeerIP: "10.12.0.3"                           # external router BGP peer IP
+    BGPPeerASN: 65003                                # external router BGP peer ASN
+    BGPTTL: 16                                       # external router eBGP TTL
+    BGPKeepAlive: 30                                 # BGP KeepAlive timer in seconds
+    BGPHoldTimer: 90                                 # BGP HoldTimer in seconds
+    BGPPassword:  "anysecretkey"                     # BGP password
+    BFDEnable: true                                  # enable BFD for BGP sessions in the VRF
+    BFDLocalIP: "10.12.0.1"                          # BFD local IP (linux interface IP than cloudgw will use to establish BGP session to external router)
+    BFDTxRate: 3000                                  # BFD transmit time in milliseconds
+    BFDRxMin: 3000                                   # BFD receive minimum time in milliseconds
+    BFDMultiplier: 3                                 # BFD multiplier
+----

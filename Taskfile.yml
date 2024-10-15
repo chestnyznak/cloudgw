@@ -1,0 +1,56 @@
+version: "3"
+
+tasks:
+  lint:
+    cmds:
+      - go mod tidy
+      - go fmt ./...
+      - go vet ./...
+      - gofumpt -l -w .
+      - golangci-lint run ./... --config .golangci.yaml
+
+  test:
+    cmds:
+      - go test ./internal/... -v -timeout=60s
+      - go test ./pkg/... -v -timeout=60s
+
+  test-vpp:
+    desc: VPP containers don't support Apple Silicon
+    cmds:
+      - go test ./test/vpp... -v -timeout=300s
+
+  build:
+    cmds:
+      - go build -o ./bin/cloudgw cmd/cloudgw/main.go
+    env:
+      GOOS: linux
+      GOARCH: amd64
+
+  run:
+    cmds:
+      - go run cmd/cloudgw/main.go
+    env:
+      GOOS: linux
+      GOARCH: amd64
+      CLOUDGW_CONFIG_PATH: config/config.yml
+
+  sudo-run:
+    cmds:
+      - task: build
+      - sudo bin/cloudgw
+    env:
+      GOOS: linux
+      GOARCH: amd64
+      CLOUDGW_CONFIG_PATH: config/config.dev.yml
+
+  deb:
+    cmds:
+      - task: build
+      - mkdir -p deploy/deb/usr/local/bin
+      - mv bin/cloudgw deploy/deb/usr/local/bin/cloudgw
+      - chmod +x deploy/deb/usr/local/bin/cloudgw
+      - chmod 0755 deploy/deb/DEBIAN/postinst
+      - chmod 0755 deploy/deb/DEBIAN/preinst
+      - dpkg-deb -Zgzip --build deploy/deb cloudgw.deb
+      - mv cloudgw.deb ./bin/cloudgw.deb
+      - rm ./deploy/deb/usr/local/bin/cloudgw

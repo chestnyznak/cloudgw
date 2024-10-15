@@ -1,0 +1,13 @@
+[Unit]
+Description=Cloudgw
+After=network.target
+After=vpp.service
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/cloudgw
+RestartSec=1
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,77 @@
+= Cloudgw usage
+
+== VPP and GoBGP CLI clients
+
+Cloudgw uses VPP as data plane engine and embedded GoBGP as control plane.
+So, you can use https://s3-docs.fd.io/vpp/24.06/cli-reference/index.html[VPP] and https://github.com/osrg/gobgp/blob/master/docs/sources/cli-command-syntax.md[GoBGP] clients to view basic information about the topology and routing tables.
+For GoBGP you need to install GoBGP client from https://github.com/osrg/gobgp/releases/[github] first).
+
+- View VPP information
+
+[source,shell]
+----
+# run vpp client
+sudo vppclt
+
+# vpp helpful commands
+show interface
+show interface address
+show hardware-interfaces
+show ip fib [table X]
+show mpls fib
+show udp encap
+----
+
+- View GoBGP information
+
+[source,shell]
+----
+# run gobgp client
+./gobgp
+
+# gobgp helpful commands
+gobgp neighbor x.x.x.x adj-in -a vpnv4
+gobgp neighbor x.x.x.x adj-out -a vpnv4
+gobgp neighbor x.x.x.x adj-out -a ipv4
+gobgp neighbor x.x.x.x adj-in -a ipv4
+gobgp global rib -a vpnv
+----
+
+== HTTP requests
+
+You can get detailed information about the bgp, routes and tunnels using HTTP request (refer to `cloudgw.yml` configuration file for listening address and port):
+
+[%header,cols="1,1",options="header"]
+|===
+| URL
+| Description
+
+| `/metrics`
+| Prometheus metrics
+
+| `/health`
+| Health check
+
+| `/summary`
+| Summary information about the bgp and routing tables
+
+| `/bgp/vrfs`
+| BGP VRF information
+
+| `/bgp/peers`
+| BGP peer information
+
+| `/vpp/vrfs`
+| VPP VRF information
+
+| `/vpp/fips`
+| VPP Floating IP information
+
+| `/vpp/tunnels`
+| VPP Tunnel information
+|===
+
+== Logging
+
+Cloudgw logs destination and format is configured in `cloudgw.yml` configuration file.
+If you run Cloudgw as systemd service, you can get logs from `sydo journalctl -u cloudgw -ef`.

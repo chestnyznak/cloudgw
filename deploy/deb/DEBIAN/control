@@ -1,0 +1,7 @@
+Package: cloudgw
+Version: 0.1.0
+Section: contrib/devel
+Priority: optional
+Architecture: amd64
+Maintainer: cloud@crpt.ru
+Description: Tungsten Fabric Cloud Gateway

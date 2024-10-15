@@ -1,0 +1,85 @@
+run:
+  concurrency: 8
+  timeout: 10m
+  issues-exit-code: 1
+  tests: true
+
+output:
+  formats:
+    - format: colored-line-number
+  print-issued-lines: true
+  print-linter-name: true
+
+linters-settings:
+  dupl:
+    threshold: 100
+  goconst:
+    min-len:         2
+    min-occurrences: 2
+  varnamelen:
+    min-name-length: 1
+  staticcheck:
+    checks:
+     - all
+     - '-SA5011'
+
+linters:
+  disable-all: true
+  enable:
+    - asasalint
+    - bodyclose
+    - contextcheck
+    - durationcheck
+    - errcheck
+    - errname
+    - errorlint
+    - exportloopref
+    - goconst
+    - gofmt
+    - gofumpt
+    - goimports
+    - gosimple
+    - govet
+    - ineffassign
+    - megacheck
+    - misspell
+    - nakedret
+    - nilerr
+    - nilnil
+    - nlreturn
+    - noctx
+    - prealloc
+    - predeclared
+    - promlinter
+    - reassign
+    - revive
+    - rowserrcheck
+    - sqlclosecheck
+    - stylecheck
+    - tenv
+    - testableexamples
+    - thelper
+    - tparallel
+    - typecheck
+    - unconvert
+    - unused
+    - varnamelen
+    - wastedassign
+    - wsl
+
+issues:
+  exclude-use-default: false
+  exclude:
+    - _ instead of err checks
+    - G104
+    - exported func .* returns unexported type .*, which can be annoying to use
+    - should have a package comment
+    - exported \w+ (\S*['.]*)([a-zA-Z'.*]*) should have comment
+  exclude-dirs:
+    - bin
+    - vendor
+    - var
+    - tmp
+    - .cache
+    - .idea
+    - .vscode

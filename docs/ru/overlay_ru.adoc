@@ -1,0 +1,40 @@
+= Настройки Overlay
+
+Чтобы упростить настройку Overlay, используется следующая таблица для связи с Tungsten Fabric vRouters и CloudGW в части Overlay.
+
+== Настройка параметров Overlay
+
+[%header,cols="1,1,1",options="header"]
+|===
+| Параметр
+| Tungsten Fabric
+| CloudGW
+
+| VRF ID
+| Назначается автоматически каждым vRouter
+| Назначается *вручную* для каждого VRF как параметр в YAML-файле (1, 2, 3, ...)
+
+| Метка MPLS
+| Назначается автоматически каждым vRouter для каждой виртуальной машины VM независимо от VRF
+| Назначается статически для каждого VRF (одна и та же метка для всех подсетей в одном VRF): 1000000 + string(VPP VRF Local IP)[-4:]
+
+| RD
+| Назначается автоматически каждым: <vRouter IP> : <vRouter VRF ID>
+| Назначается статически CloudGW для каждого VRF: <CloudGW RouterID> : <CloudGW VRF ID>
+
+| Export RT
+| Назначается *вручную* в TF для каждого Virtual Network: <TF ASN> : <CloudGW VRF ID>
+| Назначается статически CloudGW для каждого VRF: <TF ASN> : <CloudGW VRF ID>
+
+| Import RT
+| Назначается *вручную* в TF для каждого Virtual Network: <TF ASN> : <CloudGW VRF ID>
+| Назначается статически CloudGW для каждого VRF: <TF ASN> : <CloudGW VRF ID>
+|===
+
+=== Концепция Overlay
+
+image::../img/overlay_concept.png[Концепция Overlay]
+
+=== Пример Overlay
+
+image::../img/overlay_example.png[Пример Overlay]

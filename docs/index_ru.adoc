@@ -1,0 +1,88 @@
+= Документация шлюза Cloudgw
+
+== Cloudgw. Шлюз для Tungsten Fabric
+
+Простой шлюз для Tungsten Fabric/Contrail/OpenSDN для терминации MPLS over UDP-туннелей.
+Может использоваться в качестве шлюза для Tungsten Fabric при развертывании для проверки концепции или в качестве основы для продуктивного использования.
+
+=== Типичное использование
+
+Cloudgw выполняет роль BGP-шлюза и обеспечивает доступ к физической сети виртуальным машинам из Tungsten Fabric.
+Cloudgw терминирует MPLS over UDP-туннели внутри Tungsten Fabric и передает трафик наружу из Tungsten Fabric, используя стыки IP/BGP.
+Таким образом, каждая сеть (VRF) с ее пулами плавающих IP-адресов внутри Tungsten Fabric будет подключена к VRF физической сети с помощью Cloudgw.
+Дополнительную информацию см. в [документации](https://tungstenfabric.github.io/website/Tungsten-Fabric-Architecture.html#tf-bgp-gateway), раздел с non-Juniper устройствами.
+
+----
+[TF контроллеры] ---MP-BGP--- [Cloudgw] ---IP/BGP--- [Физическая сеть]
+                                  |
+[vRouters] -------MPLSoUDP--------┘
+----
+
+=== Функции и особенности
+
+- Поддержка MPLS over UDP туннелей между Cloudgw и vRouters
+- VRF sandwich до физической сети поверх BGP
+- Один выделенный интерфейс для Control plane
+- Один выделенный интерфейс для VPP (10Gbps или выше)
+- VPP в качестве data plane (с поддержкой DPDK)
+- Поддержка только IPv4
+- Поддержка протокола BFD для BGP-сессий до маршрутизаторов физической сети
+- Конфигурация с помощью YAML-файлов
+- Плавное завершение работы (Graceful shutdown)
+- Поддержка метрик в формате Prometheus
+- базовая статистика работы (VRF, BGP peers, routes) через HTTP-запросы в формате JSON
+- Работа в режиме systemd-сервиса
+
+=== Типичная схема подключения
+
+См. [docs/ru/cloudgw_scheme.adoc](docs/ru/cloudgw_scheme.adoc/)
+
+=== Требования
+
+- VPP версии 23.10 или выше
+- OS Linux, например, Ubuntu 20.04 или выше
+- Один выделенный интерфейс для VPP (желательно 10Gbps или выше)
+- Один выделенный интерфейс для Control plane (1Gbps или выше)П
+
+=== Ограничения
+
+- Не поддерживает IPv6
+- Не поддерживает NETCONF
+- Не поддерживает bond-интерфейсы
+- Не поддерживает on-fly изменение конфигурации
+- Поддержка Оферлей-схемы, приведенной в [docs/ru/overlay.adoc](docs/ru/overlay.adoc)
+
+=== Запуск
+
+==== Как deb-пакет
+
+1. Установить и сконфигурировать VPP (см [docs/ru/vpp.adoc](docs/eng/vpp.adoc))
+2. Сгенерировать deb-пакет (см. [Taskfile.yml](Taskfile.yml))
+3. Установить Cloudgw как deb-пакет
+4. Сконфигурировать Cloudgw, внеся необходимые изменения в конфигурационный файл `/etc/cloudgw/config.conf` (см. [docs/ru/cloudgw_config.adoc](docs/ru/cloudgw_config.adoc))
+5. Запустить как systemd-сервис (`sudo sytemctl restart cloudgw`)
+
+==== Как bin-файл
+
+1. Установить и сконфигурировать VPP (см [docs/ru/vpp.adoc](docs/eng/vpp.adoc))
+2. Собрать bin-файл Cloudgw для нужной архитектуры из go-файлов (см. `Taskfile.yml`)
+3. Сконфигурировать Cloudgw, внеся необходимые изменения в конфигурационный файл `/etc/cloudgw/config.conf` (см. [docs/ru/cloudgw_config.adoc](docs/ru/cloudgw_config.adoc))
+4. Запустить Cloudgw (`sudo CLOUDGW_CONFIG_PATH=config.yml ./cloudgw`)
+
+NOTE: Также необходимо сконфигурировать Cloudgw как BGP Router на стороне Tungsten Fabric с корректными адресным семейством(inet-vpn) и Route Target (см. [docs/ru/overlay.adoc](docs/ru/overlay.adoc))
+
+==== Работа с Cloudgw
+
+См. [`docs/ru/cloudgw_usage.adoc`](docs/ru/cloudgw_usage.adoc)
+
+==== Документация
+
+link:./ru/cloudgw_usage_ru.adoc[Использование Cloudgw]
+
+link:./ru/vpp_ru.adoc[Настройка и конфигурация VPP]
+
+link:./ru/cloudgw_config_ru.adoc[Конфигурационный файл Cloudgw]
+
+link:./ru/cloudgw_scheme_ru.adoc[Схема подключения Cloudgw]
+
+link:./ru/overlay_ru.adoc[Настройки Overlay]

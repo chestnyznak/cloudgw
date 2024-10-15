@@ -1,0 +1,93 @@
+= Установка и настройка VPP
+
+Для работы Cloudgw необходимо установить и настроить VPP.
+
+== Установка
+
+- Загрузить kernel-модуль:
+
+----
+uio_pci_generic
+----
+
+ - https://s3-docs.fd.io/vpp/24.06/gettingstarted/installing/ubuntu.html[downloading and Installing VPP for Ubuntu]
+
+NOTE: Если вы используете сетевые карты Mellanox, необходимо сначала скомпилировать VPP из источников с поддержкой Mellanox (флаги `DPDK_MLX4_PMD`, `DPDK_MLX5_PMD`, `DPDK_MLX5_COMMON_PMD`)
+
+== Конфигурация VPP
+
+- Создать каталог и файл журнала логирования (необязательно)
+
+----
+mkdir -p /var/log/vpp/
+touch /var/log/vpp/vpp.log
+chmod 644 /var/log/vpp/vpp.log
+----
+
+- Найти PCI-адрес data plane интерфейса VPP (интерфейс, который будет использоваться для передачи пользовательского трафика VPP):
+
+[source,shell]
+----
+sudo lshw -class network -businfo
+----
+
+- Отредактировать файл конфигурации VPP `/etc/vpp/startup.conf`:
+
+[source,shell]
+----
+unix {
+  nodaemon
+  log /var/log/vpp/vpp.log
+  full-coredump
+  cli-listen /run/vpp/cli.sock
+  cli-no-pager
+  gid vpp
+}
+api-trace {
+  on
+}
+api-segment {
+  gid vpp
+}
+socksvr {
+  default
+}
+cpu {
+  main-core 1
+  corelist-workers 2-9 # настроить в соответствии с вашими потребностями
+}
+dpdk {
+  dev default {
+    num-rx-queues 8 # настроить в соответствии с вашими потребностями
+    num-tx-queues 8 # настроить в соответствии с вашими потребностями
+  }
+  dev 0000:00:07.0 # pci-адрес из предыдущего шага
+  no-multi-seg
+----
+
+- Отредактировать файл конфигурации памяти VPP `/etc/sysctl.d/80-vpp.conf`
+
+[source,shell]
+----
+# Number of 2MB hugepages desired
+vm.nr_hugepages=32768 # настроить в соответствии с вашими потребностями
+
+# Must be greater than or equal to (2 * vm.nr_hugepages).
+vm.max_map_count=66560 # настроить в соответствии с вашими потребностями
+
+# All groups allowed to access hugepages
+vm.hugetlb_shm_group=0
+
+# Shared Memory Max must be greater or equal to the total size of hugepages.
+# For 2MB pages, TotalHugepageSize = vm.nr_hugepages * 2 * 1024 * 1024
+# If the existing kernel.shmmax setting  (cat /proc/sys/kernel/shmmax)
+# is greater than the calculated TotalHugepageSize then set this parameter
+# to current shmmax value.
+kernel.shmmax=68719476736 # настроить в соответствии с вашими потребностями
+----
+
+- Перезапустить VPP:
+
+----
+sudo systemctl restart vpp.service
+----

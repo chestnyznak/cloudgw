@@ -1,0 +1,90 @@
+---
+Logging:
+  Level: "info"
+  Format: "console" # "console", "json"
+  Output: "stdout"
+
+HTTP:
+  Enable: false
+  Address: ":9101"
+
+Pyroscope:
+  Enable: false
+  URL: "http://localhost:4040"
+
+TFController:
+  BGPPeerASN: 65001
+  BGPTTL: 10
+  BGPKeepAlive: 3
+  BGPHoldTimer: 9
+  Address:
+    - "192.0.0.11"
+    - "192.0.0.12"
+    - "192.0.0.13"
+
+GoBGP:
+  GRPCListenAddress: ":50051"
+  BGPLocalASN: 65000
+  BGPLocalPort: 179
+  RID: "192.0.0.1"
+  MetricPollingInterval: 5
+
+VPP:
+  BinAPISock: "cloudgw.sock"
+  MainInterfaceID: 1
+  TunLocalIP: "192.0.0.1/24"
+  TunDefaultGW: "192.0.0.254"
+  InterfaceMonitorEnable: true
+  MetricPollingInterval: 5
+
+VRF:
+  - FIPPrefixes: ["172.16.0.0/24","172.16.1.0/24"]
+    VRFName: "vrf1"
+    VRFID: 1
+    LocalIP: "192.0.1.1/24"
+    VLANID: 10
+    BGPPeerIP: "192.0.1.254"
+    BGPPeerASN: 65002
+    BGPTTL: 16
+    BGPKeepAlive: 30
+    BGPHoldTimer: 90
+    BGPPassword: "anysecretkey"
+    BFDEnable: false
+    BFDLocalIP: "192.0.1.2"
+    BFDTxRate: 1000
+    BFDRxMin: 1000
+    BFDMultiplier: 3
+
+  - FIPPrefixes: ["172.16.2.0/24"]
+    VRFName: "vrf2"
+    VRFID: 2
+    LocalIP: "192.0.2.2/24"
+    VLANID: 20
+    BGPPeerIP: "192.0.2.6"
+    BGPPeerASN: 65002
+    BGPTTL: 16
+    BGPKeepAlive: 30
+    BGPHoldTimer: 90
+    BGPPassword: "anysecretkey"
+    BFDEnable: false
+    BFDLocalIP: "192.0.2.2"
+    BFDTxRate: 1000
+    BFDRxMin: 1000
+    BFDMultiplier: 3
+
+  - FIPPrefixes: ["172.16.4.0/24"]
+    VRFName: "vrf3"
+    VRFID: 3
+    LocalIP: "192.0.3.2/24"
+    VLANID: 30
+    BGPPeerIP: "192.0.3.6"
+    BGPPeerASN: 65002
+    BGPTTL: 16
+    BGPKeepAlive: 30
+    BGPHoldTimer: 90
+    BGPPassword: "anysecretkey"
+    BFDEnable: false
+    BFDLocalIP: "192.0.3.2"
+    BFDTxRate: 1000
+    BFDRxMin: 1000
+    BFDMultiplier: 3
